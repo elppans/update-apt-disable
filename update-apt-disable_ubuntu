@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Verifica se o script está sendo executado como root
+if [[ $EUID -ne 0 ]]; then
+  echo "Este script precisa ser executado como root. Use 'sudo' para executá-lo."
+  exit 1
+fi
+
+echo "Desativando mensagens de atualização no Ubuntu..."
+
+# 1. Desativar mensagens do MOTD
+echo "Desativando mensagens do MOTD..."
+sudo sed -i 's/^ENABLED=1/ENABLED=0/' /etc/default/motd-news 2>/dev/null
+chmod -x /etc/update-motd.d/90-updates-available 2>/dev/null
+chmod -x /etc/update-motd.d/91-release-upgrade 2>/dev/null
+
+# 2. Desativar verificações automáticas de atualização
+echo "Desativando verificações automáticas de atualização..."
+if [[ -f /etc/apt/apt.conf.d/10periodic ]]; then
+  sed -i 's/^APT::Periodic::Update-Package-Lists.*/APT::Periodic::Update-Package-Lists "0";/' /etc/apt/apt.conf.d/10periodic
+  sed -i 's/^APT::Periodic::Download-Upgradeable-Packages.*/APT::Periodic::Download-Upgradeable-Packages "0";/' /etc/apt/apt.conf.d/10periodic
+  sed -i 's/^APT::Periodic::AutocleanInterval.*/APT::Periodic::AutocleanInterval "0";/' /etc/apt/apt.conf.d/10periodic
+else
+  sudo bash -c 'cat > /etc/apt/apt.conf.d/10periodic <<EOF
+APT::Periodic::Update-Package-Lists "0";
+APT::Periodic::Download-Upgradeable-Packages "0";
+APT::Periodic::Unattended-Upgrade "0";
+EOF'
+fi
+
+# 3. Desativar notificações de novas versões do Ubuntu
+echo "Desativando notificações de novas versões do Ubuntu..."
+if [[ -f /etc/update-manager/release-upgrades ]]; then
+  sed -i 's/^Prompt=.*/Prompt=never/' /etc/update-manager/release-upgrades
+fi
+
+# 4. Desativar o serviço unattended-upgrades
+echo "Desativando o serviço unattended-upgrades..."
+systemctl disable unattended-upgrades 2>/dev/null
+
+# Remover o pacote update-notifier (opcional)
+echo "Removendo update-notifier..."
+sudo apt remove -y update-notifier
+
+echo "Configurações aplicadas. Para garantir a aplicação completa, reinicie o sistema."
+
+exit 0
