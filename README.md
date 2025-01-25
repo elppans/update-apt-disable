@@ -2,6 +2,10 @@
 
 ## Script para Desativar Mensagens de Atualização no Ubuntu
 
+- Sistema Ubuntu, mensagem de atualização ao logar via Terminal ou SSH:
+  
+![image](https://github.com/user-attachments/assets/d8072ea8-ed3a-48ee-8898-7998ede11f59)
+
 Este script automatiza o processo de desativação de mensagens de atualização exibidas no terminal ou ao acessar o sistema via SSH em distribuições baseadas no Ubuntu.
 
 ## Funcionalidades
